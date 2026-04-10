@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Bookings</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        header {
+            background: #1a1a2e;
+            padding: 20px 40px;
+            border-bottom: 2px solid #e94560;
+            text-align: center;
+        }
+        header h1 { color: #e94560; font-size: 1.8rem; letter-spacing: 1px; }
+        header p { color: #8888aa; margin-top: 4px; font-size: 0.9rem; }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .panel {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid #16213e;
+        }
+        .panel h2 {
+            color: #e94560;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #16213e;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #aaa;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .form-group select option { background: #16213e; }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #e94560;
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+        }
+        .btn-primary:hover { background: #d63851; }
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+        }
+        .btn-cancel:hover { background: #e94560; color: #fff; }
+
+        .msg {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .msg.success { background: #1a3a2a; color: #4ade80; border: 1px solid #2a5a3a; display: block; }
+        .msg.error { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; display: block; }
+
+        /* Calendar */
+        .cal-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .cal-nav button {
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            color: #e0e0e0;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .cal-nav button:hover { border-color: #e94560; }
+        .cal-nav span { font-size: 1.05rem; font-weight: 600; }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .cal-header {
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            font-size: 0.9rem;
+            background: #16213e;
+        }
+        .cal-day:hover { background: #2a2a4a; }
+        .cal-day.empty { background: transparent; cursor: default; }
+        .cal-day.today { border: 1px solid #e94560; }
+        .cal-day.selected { background: #e94560; color: #fff; }
+        .cal-day .dots {
+            display: flex;
+            gap: 2px;
+            margin-top: 3px;
+            position: absolute;
+            bottom: 4px;
+        }
+        .cal-day .dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #e94560;
+        }
+        .cal-day.selected .dot { background: #fff; }
+        .cal-day .tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            color: #ccc;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .cal-day:hover .tooltip { display: block; }
+
+        /* Day detail */
+        .day-detail {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #16213e;
+        }
+        .day-detail h3 { color: #e94560; margin-bottom: 12px; font-size: 1rem; }
+        .day-detail .no-bookings { color: #666; font-style: italic; font-size: 0.9rem; }
+
+        .booking-card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #e94560;
+        }
+        .booking-info span {
+            display: inline-block;
+            margin-right: 16px;
+            font-size: 0.88rem;
+        }
+        .booking-info .b-name { color: #fff; font-weight: 600; }
+        .booking-info .b-meta { color: #888; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>La Maison - Table Reservations</h1>
+        <p>Book your dining experience</p>
+    </header>
+
+    <div class="container">
+        <!-- Booking Form -->
+        <div class="panel">
+            <h2>Make a Reservation</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="name" placeholder="Your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Guests</label>
+                    <input type="number" id="guests" min="1" max="20" value="2" required>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label>Dinner Time</label>
+                    <select id="time" required>
+                        <option value="">Select a time slot</option>
+                        <option value="5:00 PM">5:00 PM</option>
+                        <option value="5:30 PM">5:30 PM</option>
+                        <option value="6:00 PM">6:00 PM</option>
+                        <option value="6:30 PM">6:30 PM</option>
+                        <option value="7:00 PM">7:00 PM</option>
+                        <option value="7:30 PM">7:30 PM</option>
+                        <option value="8:00 PM">8:00 PM</option>
+                        <option value="8:30 PM">8:30 PM</option>
+                        <option value="9:00 PM">9:00 PM</option>
+                        <option value="9:30 PM">9:30 PM</option>
+                        <option value="10:00 PM">10:00 PM</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Reserve Table</button>
+            </form>
+            <div id="formMsg" class="msg"></div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="panel">
+            <h2>Booking Calendar</h2>
+            <div class="cal-nav">
+                <button onclick="changeMonth(-1)">&larr; Prev</button>
+                <span id="calTitle"></span>
+                <button onclick="changeMonth(1)">Next &rarr;</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="day-detail" id="dayDetail" style="display:none;">
+                <h3 id="dayTitle"></h3>
+                <div id="dayBookings"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allBookings = [];
+        let calYear, calMonth, selectedDate = null;
+
+        // Init calendar to current month
+        const now = new Date();
+        calYear = now.getFullYear();
+        calMonth = now.getMonth();
+
+        // Set default date to today
+        document.getElementById('date').value = now.toISOString().split('T')[0];
+
+        // Load bookings then render
+        fetchBookings();
+
+        function fetchBookings() {
+            fetch('/api/bookings')
+                .then(r => r.json())
+                .then(data => {
+                    allBookings = data;
+                    renderCalendar();
+                    if (selectedDate) showDay(selectedDate);
+                });
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calGrid');
+            const months = ['January','February','March','April','May','June',
+                            'July','August','September','October','November','December'];
+            document.getElementById('calTitle').textContent = `${months[calMonth]} ${calYear}`;
+
+            const firstDay = new Date(calYear, calMonth, 1).getDay();
+            const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+            // Group bookings by date
+            const byDate = {};
+            allBookings.forEach(b => {
+                if (!byDate[b.date]) byDate[b.date] = [];
+                byDate[b.date].push(b);
+            });
+
+            let html = '';
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+                html += `<div class="cal-header">${d}</div>`;
+            });
+
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="cal-day empty"></div>';
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selectedDate;
+                const dayBookings = byDate[dateStr] || [];
+
+                let classes = 'cal-day';
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' selected';
+
+                let dots = '';
+                const dotCount = Math.min(dayBookings.length, 4);
+                if (dotCount > 0) {
+                    dots = '<div class="dots">' + '<div class="dot"></div>'.repeat(dotCount) + '</div>';
+                }
+
+                let tooltip = '';
+                if (dayBookings.length > 0) {
+                    const lines = dayBookings.map(b => `${b.name} - ${b.time} (${b.guests})`).join('&#10;');
+                    tooltip = `<div class="tooltip">${dayBookings.length} booking${dayBookings.length > 1 ? 's' : ''}: ${dayBookings.map(b => b.name).join(', ')}</div>`;
+                }
+
+                html += `<div class="${classes}" onclick="selectDay('${dateStr}')">${d}${dots}${tooltip}</div>`;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function changeMonth(delta) {
+            calMonth += delta;
+            if (calMonth < 0) { calMonth = 11; calYear--; }
+            if (calMonth > 11) { calMonth = 0; calYear++; }
+            renderCalendar();
+        }
+
+        function selectDay(dateStr) {
+            selectedDate = dateStr;
+            renderCalendar();
+            showDay(dateStr);
+        }
+
+        function showDay(dateStr) {
+            const detail = document.getElementById('dayDetail');
+            const title = document.getElementById('dayTitle');
+            const container = document.getElementById('dayBookings');
+
+            const d = new Date(dateStr + 'T12:00:00');
+            const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            title.textContent = d.toLocaleDateString('en-US', opts);
+
+            const dayBookings = allBookings.filter(b => b.date === dateStr);
+
+            if (dayBookings.length === 0) {
+                container.innerHTML = '<div class="no-bookings">No bookings for this day</div>';
+            } else {
+                container.innerHTML = dayBookings.map(b => `
+                    <div class="booking-card" id="booking-${b.id}">
+                        <div class="booking-info">
+                            <span class="b-name">${b.name}</span>
+                            <span class="b-meta">${b.time}</span>
+                            <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                        </div>
+                        <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
+                    </div>
+                `).join('');
+            }
+
+            detail.style.display = 'block';
+        }
+
+        // Form submit
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const msg = document.getElementById('formMsg');
+
+            const payload = {
+                name: document.getElementById('name').value,
+                guests: document.getElementById('guests').value,
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value
+            };
+
+            fetch('/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json().then(data => ({ ok: r.ok, data })))
+            .then(({ ok, data }) => {
+                msg.className = 'msg ' + (ok ? 'success' : 'error');
+                msg.textContent = data.message || data.error;
+                msg.style.display = 'block';
+                if (ok) {
+                    document.getElementById('bookingForm').reset();
+                    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('guests').value = 2;
+                    // Auto-select the booked date on calendar
+                    const bookedDate = payload.date;
+                    const d = new Date(bookedDate + 'T12:00:00');
+                    calYear = d.getFullYear();
+                    calMonth = d.getMonth();
+                    selectedDate = bookedDate;
+                    fetchBookings();
+                }
+                setTimeout(() => { msg.style.display = 'none'; }, 4000);
+            });
+        });
+
+        function cancelBooking(id) {
+            if (!confirm('Cancel this booking?')) return;
+            fetch(`/cancel/${id}`, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) fetchBookings();
+                });
+        }
+    </script>
+</body>
+</html>
