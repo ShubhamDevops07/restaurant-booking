@@ -48,6 +48,8 @@ def book():
         return jsonify({"error": "Name is required"}), 400
     if not guests or int(guests) < 1:
         return jsonify({"error": "At least 1 guest required"}), 400
+    if int(guests) > 20:
+        return jsonify({"error": "Maximum 20 guests per booking"}), 400
     if not date:
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
