@@ -71,8 +71,8 @@ Customer (Browser)  --->  Waiter (app.py)  --->  Notebook (restaurant.db)
 git clone https://github.com/ShubhamDevops07/restaurant-booking.git
 cd restaurant-booking
 
-# 2. Install Flask
-pip install flask
+# 2. Install dependencies
+pip install -r requirements.txt
 
 # 3. Run the server
 python app.py
