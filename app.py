@@ -96,6 +96,18 @@ def api_bookings():
     return jsonify(result)
 
 
+@app.route("/health")
+def health():
+    """Lightweight health check endpoint for uptime monitoring."""
+    try:
+        conn = get_db()
+        conn.execute("SELECT 1").fetchone()
+        conn.close()
+        return jsonify({"status": "ok", "database": "connected"})
+    except Exception as e:
+        return jsonify({"status": "error", "database": str(e)}), 500
+
+
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=3000, debug=True)
