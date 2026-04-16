@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
@@ -94,6 +95,20 @@ def api_bookings():
         for b in bookings
     ]
     return jsonify(result)
+
+
+@app.route("/health")
+def health():
+    status = {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
+    try:
+        conn = get_db()
+        conn.execute("SELECT 1")
+        conn.close()
+        status["database"] = "connected"
+    except Exception:
+        status["status"] = "degraded"
+        status["database"] = "disconnected"
+    return jsonify(status)
 
 
 if __name__ == "__main__":
