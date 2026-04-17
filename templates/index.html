@@ -192,6 +192,11 @@
             border-top: 1px solid #16213e;
         }
         .day-detail h3 { color: #e94560; margin-bottom: 12px; font-size: 1rem; }
+        .day-detail .day-summary {
+            color: #8888aa;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
         .day-detail .no-bookings { color: #666; font-style: italic; font-size: 0.9rem; }
 
         .booking-card {
@@ -269,6 +274,7 @@
             <div class="cal-nav">
                 <button onclick="changeMonth(-1)">&larr; Prev</button>
                 <span id="calTitle"></span>
+                <button onclick="goToToday()" style="font-size:0.78rem; padding:4px 10px;">Today</button>
                 <button onclick="changeMonth(1)">Next &rarr;</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
@@ -367,6 +373,16 @@
             renderCalendar();
         }
 
+        function goToToday() {
+            const t = new Date();
+            calYear = t.getFullYear();
+            calMonth = t.getMonth();
+            const todayStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+            selectedDate = todayStr;
+            renderCalendar();
+            showDay(todayStr);
+        }
+
         function selectDay(dateStr) {
             selectedDate = dateStr;
             renderCalendar();
@@ -387,7 +403,9 @@
             if (dayBookings.length === 0) {
                 container.innerHTML = '<div class="no-bookings">No bookings for this day</div>';
             } else {
-                container.innerHTML = dayBookings.map(b => `
+                const totalGuests = dayBookings.reduce((sum, b) => sum + b.guests, 0);
+                const summaryHtml = `<div class="day-summary">${dayBookings.length} booking${dayBookings.length > 1 ? 's' : ''} &middot; ${totalGuests} total guest${totalGuests > 1 ? 's' : ''}</div>`;
+                container.innerHTML = summaryHtml + dayBookings.map(b => `
                     <div class="booking-card" id="booking-${b.id}">
                         <div class="booking-info">
                             <span class="b-name">${b.name}</span>
