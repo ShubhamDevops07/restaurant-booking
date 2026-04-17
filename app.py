@@ -97,6 +97,33 @@ def api_bookings():
     return jsonify(result)
 
 
+@app.route("/api/stats")
+def api_stats():
+    conn = get_db()
+    total = conn.execute("SELECT COUNT(*) as c FROM bookings").fetchone()["c"]
+    upcoming = conn.execute(
+        "SELECT COUNT(*) as c FROM bookings WHERE date >= ?",
+        (datetime.now().strftime("%Y-%m-%d"),),
+    ).fetchone()["c"]
+    total_guests = conn.execute(
+        "SELECT COALESCE(SUM(guests), 0) as s FROM bookings"
+    ).fetchone()["s"]
+    popular_time = conn.execute(
+        "SELECT time, COUNT(*) as c FROM bookings GROUP BY time ORDER BY c DESC LIMIT 1"
+    ).fetchone()
+    busiest_day = conn.execute(
+        "SELECT date, COUNT(*) as c FROM bookings GROUP BY date ORDER BY c DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    return jsonify({
+        "total_bookings": total,
+        "upcoming_bookings": upcoming,
+        "total_guests": total_guests,
+        "popular_time": popular_time["time"] if popular_time else None,
+        "busiest_day": busiest_day["date"] if busiest_day else None,
+    })
+
+
 @app.route("/health")
 def health():
     status = {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
