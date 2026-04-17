@@ -217,9 +217,39 @@
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
 
+        /* Stats bar */
+        .stats-bar {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .stat-card {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 18px 20px;
+            border: 1px solid #16213e;
+            text-align: center;
+        }
+        .stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #e94560;
+        }
+        .stat-card .stat-label {
+            font-size: 0.78rem;
+            color: #8888aa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -228,6 +258,25 @@
         <h1>La Maison - Table Reservations</h1>
         <p>Book your dining experience</p>
     </header>
+
+    <div class="stats-bar" id="statsBar">
+        <div class="stat-card">
+            <div class="stat-value" id="statTotal">-</div>
+            <div class="stat-label">Total Bookings</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statUpcoming">-</div>
+            <div class="stat-label">Upcoming</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statGuests">-</div>
+            <div class="stat-label">Total Guests</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statPopularTime">-</div>
+            <div class="stat-label">Popular Time</div>
+        </div>
+    </div>
 
     <div class="container">
         <!-- Booking Form -->
@@ -307,6 +356,18 @@
                     allBookings = data;
                     renderCalendar();
                     if (selectedDate) showDay(selectedDate);
+                });
+            fetchStats();
+        }
+
+        function fetchStats() {
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('statTotal').textContent = data.total_bookings;
+                    document.getElementById('statUpcoming').textContent = data.upcoming_bookings;
+                    document.getElementById('statGuests').textContent = data.total_guests;
+                    document.getElementById('statPopularTime').textContent = data.popular_time || '-';
                 });
         }
 
