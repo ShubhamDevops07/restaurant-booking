@@ -343,8 +343,10 @@
         calYear = now.getFullYear();
         calMonth = now.getMonth();
 
-        // Set default date to today
-        document.getElementById('date').value = now.toISOString().split('T')[0];
+        // Set default date to today and prevent past dates
+        const todayISO = now.toISOString().split('T')[0];
+        document.getElementById('date').value = todayISO;
+        document.getElementById('date').setAttribute('min', todayISO);
 
         // Load bookings then render
         fetchBookings();
