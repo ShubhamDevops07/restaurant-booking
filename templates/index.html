@@ -223,7 +223,7 @@
             margin: 0 auto 20px;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
         }
         .stat-card {
@@ -247,6 +247,9 @@
         }
 
         /* Responsive */
+        @media (max-width: 900px) {
+            .stats-bar { grid-template-columns: repeat(3, 1fr); }
+        }
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
@@ -275,6 +278,10 @@
         <div class="stat-card">
             <div class="stat-value" id="statPopularTime">-</div>
             <div class="stat-label">Popular Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statBusiestDay">-</div>
+            <div class="stat-label">Busiest Day</div>
         </div>
     </div>
 
@@ -343,8 +350,10 @@
         calYear = now.getFullYear();
         calMonth = now.getMonth();
 
-        // Set default date to today
-        document.getElementById('date').value = now.toISOString().split('T')[0];
+        // Set default date to today and prevent past date selection
+        const todayISO = now.toISOString().split('T')[0];
+        document.getElementById('date').value = todayISO;
+        document.getElementById('date').setAttribute('min', todayISO);
 
         // Load bookings then render
         fetchBookings();
@@ -368,6 +377,12 @@
                     document.getElementById('statUpcoming').textContent = data.upcoming_bookings;
                     document.getElementById('statGuests').textContent = data.total_guests;
                     document.getElementById('statPopularTime').textContent = data.popular_time || '-';
+                    if (data.busiest_day) {
+                        const bd = new Date(data.busiest_day + 'T12:00:00');
+                        document.getElementById('statBusiestDay').textContent = bd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    } else {
+                        document.getElementById('statBusiestDay').textContent = '-';
+                    }
                 });
         }
 
