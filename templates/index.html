@@ -223,7 +223,7 @@
             margin: 0 auto 20px;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
         }
         .stat-card {
@@ -251,6 +251,9 @@
             .container { grid-template-columns: 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
         }
+        @media (max-width: 480px) {
+            .stats-bar { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -276,6 +279,10 @@
             <div class="stat-value" id="statPopularTime">-</div>
             <div class="stat-label">Popular Time</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statBusiestDay">-</div>
+            <div class="stat-label">Busiest Day</div>
+        </div>
     </div>
 
     <div class="container">
@@ -285,7 +292,7 @@
             <form id="bookingForm">
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" id="name" placeholder="Your full name" required>
+                    <input type="text" id="name" placeholder="Your full name" maxlength="100" required>
                 </div>
                 <div class="form-group">
                     <label>Number of Guests</label>
@@ -293,7 +300,7 @@
                 </div>
                 <div class="form-group">
                     <label>Date</label>
-                    <input type="date" id="date" required>
+                    <input type="date" id="date" min="{{ today }}" required>
                 </div>
                 <div class="form-group">
                     <label>Dinner Time</label>
@@ -368,6 +375,12 @@
                     document.getElementById('statUpcoming').textContent = data.upcoming_bookings;
                     document.getElementById('statGuests').textContent = data.total_guests;
                     document.getElementById('statPopularTime').textContent = data.popular_time || '-';
+                    if (data.busiest_day) {
+                        const bd = new Date(data.busiest_day + 'T12:00:00');
+                        document.getElementById('statBusiestDay').textContent = bd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    } else {
+                        document.getElementById('statBusiestDay').textContent = '-';
+                    }
                 });
         }
 

@@ -34,7 +34,8 @@ def index():
     conn = get_db()
     bookings = conn.execute("SELECT * FROM bookings ORDER BY date, time").fetchall()
     conn.close()
-    return render_template("index.html", bookings=bookings)
+    today = datetime.now().strftime("%Y-%m-%d")
+    return render_template("index.html", bookings=bookings, today=today)
 
 
 @app.route("/book", methods=["POST"])
@@ -55,8 +56,22 @@ def book():
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
+    if len(name) > 100:
+        return jsonify({"error": "Name must be 100 characters or fewer"}), 400
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    if date < today:
+        return jsonify({"error": "Cannot book a date in the past"}), 400
 
     conn = get_db()
+    existing = conn.execute(
+        "SELECT id FROM bookings WHERE name = ? AND date = ? AND time = ?",
+        (name, date, time_slot),
+    ).fetchone()
+    if existing:
+        conn.close()
+        return jsonify({"error": "A booking already exists for this name, date, and time"}), 409
+
     conn.execute(
         "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
         (name, int(guests), date, time_slot),
