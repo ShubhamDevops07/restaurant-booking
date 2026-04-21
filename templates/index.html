@@ -54,7 +54,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px 14px;
             background: #16213e;
@@ -64,9 +64,14 @@
             font-size: 0.95rem;
             transition: border-color 0.2s;
         }
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #e94560;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
         }
         .form-group select option { background: #16213e; }
 
@@ -216,6 +221,13 @@
         }
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
+        .booking-info .b-notes {
+            display: block;
+            margin-top: 4px;
+            color: #aaa;
+            font-size: 0.8rem;
+            font-style: italic;
+        }
 
         /* Stats bar */
         .stats-bar {
@@ -311,6 +323,10 @@
                         <option value="9:30 PM">9:30 PM</option>
                         <option value="10:00 PM">10:00 PM</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Special Requests</label>
+                    <textarea id="notes" placeholder="e.g. Window seat, birthday celebration, high chair needed..." rows="2"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
             </form>
@@ -472,6 +488,7 @@
                             <span class="b-name">${b.name}</span>
                             <span class="b-meta">${b.time}</span>
                             <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                            ${b.notes ? `<span class="b-notes">${b.notes}</span>` : ''}
                         </div>
                         <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
                     </div>
@@ -490,7 +507,8 @@
                 name: document.getElementById('name').value,
                 guests: document.getElementById('guests').value,
                 date: document.getElementById('date').value,
-                time: document.getElementById('time').value
+                time: document.getElementById('time').value,
+                notes: document.getElementById('notes').value
             };
 
             fetch('/book', {
