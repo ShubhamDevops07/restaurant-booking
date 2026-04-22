@@ -69,6 +69,7 @@
             border-color: #e94560;
         }
         .form-group select option { background: #16213e; }
+        .form-group select optgroup { background: #0f0f23; color: #e94560; font-style: normal; }
 
         .btn {
             padding: 10px 24px;
@@ -246,10 +247,31 @@
             margin-top: 4px;
         }
 
+        /* Footer */
+        footer {
+            max-width: 1200px;
+            margin: 30px auto 0;
+            padding: 24px 20px;
+            border-top: 1px solid #16213e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #8888aa;
+            font-size: 0.82rem;
+        }
+        footer .hours {
+            display: flex;
+            gap: 24px;
+        }
+        footer .hours span { color: #e94560; font-weight: 600; }
+        footer select optgroup { color: #aaa; font-style: normal; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            footer { flex-direction: column; gap: 10px; text-align: center; }
+            footer .hours { flex-direction: column; gap: 4px; }
         }
     </style>
 </head>
@@ -296,20 +318,31 @@
                     <input type="date" id="date" required>
                 </div>
                 <div class="form-group">
-                    <label>Dinner Time</label>
+                    <label>Time Slot</label>
                     <select id="time" required>
                         <option value="">Select a time slot</option>
-                        <option value="5:00 PM">5:00 PM</option>
-                        <option value="5:30 PM">5:30 PM</option>
-                        <option value="6:00 PM">6:00 PM</option>
-                        <option value="6:30 PM">6:30 PM</option>
-                        <option value="7:00 PM">7:00 PM</option>
-                        <option value="7:30 PM">7:30 PM</option>
-                        <option value="8:00 PM">8:00 PM</option>
-                        <option value="8:30 PM">8:30 PM</option>
-                        <option value="9:00 PM">9:00 PM</option>
-                        <option value="9:30 PM">9:30 PM</option>
-                        <option value="10:00 PM">10:00 PM</option>
+                        <optgroup label="Lunch (11:30 AM - 2:30 PM)">
+                            <option value="11:30 AM">11:30 AM</option>
+                            <option value="12:00 PM">12:00 PM</option>
+                            <option value="12:30 PM">12:30 PM</option>
+                            <option value="1:00 PM">1:00 PM</option>
+                            <option value="1:30 PM">1:30 PM</option>
+                            <option value="2:00 PM">2:00 PM</option>
+                            <option value="2:30 PM">2:30 PM</option>
+                        </optgroup>
+                        <optgroup label="Dinner (5:00 PM - 10:00 PM)">
+                            <option value="5:00 PM">5:00 PM</option>
+                            <option value="5:30 PM">5:30 PM</option>
+                            <option value="6:00 PM">6:00 PM</option>
+                            <option value="6:30 PM">6:30 PM</option>
+                            <option value="7:00 PM">7:00 PM</option>
+                            <option value="7:30 PM">7:30 PM</option>
+                            <option value="8:00 PM">8:00 PM</option>
+                            <option value="8:30 PM">8:30 PM</option>
+                            <option value="9:00 PM">9:00 PM</option>
+                            <option value="9:30 PM">9:30 PM</option>
+                            <option value="10:00 PM">10:00 PM</option>
+                        </optgroup>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
@@ -333,6 +366,14 @@
             </div>
         </div>
     </div>
+
+    <footer>
+        <div>La Maison &copy; 2026 &mdash; Fine Dining &amp; Reservations</div>
+        <div class="hours">
+            <div>Lunch: <span>11:30 AM &ndash; 2:30 PM</span></div>
+            <div>Dinner: <span>5:00 PM &ndash; 10:00 PM</span></div>
+        </div>
+    </footer>
 
     <script>
         let allBookings = [];
