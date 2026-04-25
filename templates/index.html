@@ -103,7 +103,10 @@
             border-radius: 8px;
             font-size: 0.9rem;
             display: none;
+            transition: opacity 0.5s ease;
+            opacity: 1;
         }
+        .msg.fade-out { opacity: 0; }
         .msg.success { background: #1a3a2a; color: #4ade80; border: 1px solid #2a5a3a; display: block; }
         .msg.error { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; display: block; }
 
@@ -384,8 +387,10 @@
         calYear = now.getFullYear();
         calMonth = now.getMonth();
 
-        // Set default date to today
-        document.getElementById('date').value = now.toISOString().split('T')[0];
+        // Set default date to today and prevent selecting past dates
+        const todayISO = now.toISOString().split('T')[0];
+        document.getElementById('date').value = todayISO;
+        document.getElementById('date').setAttribute('min', todayISO);
 
         // Load bookings then render
         fetchBookings();
@@ -556,7 +561,14 @@
                     selectedDate = bookedDate;
                     fetchBookings();
                 }
-                setTimeout(() => { msg.style.display = 'none'; }, 4000);
+                setTimeout(() => {
+                    msg.classList.add('fade-out');
+                    setTimeout(() => {
+                        msg.style.display = 'none';
+                        msg.classList.remove('fade-out');
+                        msg.style.opacity = '1';
+                    }, 500);
+                }, 3500);
             });
         });
 
