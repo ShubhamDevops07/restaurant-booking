@@ -22,10 +22,21 @@ def init_db():
             guests INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
+            phone TEXT NOT NULL DEFAULT '',
+            notes TEXT NOT NULL DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
+
+    columns = [row[1] for row in conn.execute("PRAGMA table_info(bookings)").fetchall()]
+    if "phone" not in columns:
+        conn.execute("ALTER TABLE bookings ADD COLUMN phone TEXT NOT NULL DEFAULT ''")
+        conn.commit()
+    if "notes" not in columns:
+        conn.execute("ALTER TABLE bookings ADD COLUMN notes TEXT NOT NULL DEFAULT ''")
+        conn.commit()
+
     conn.close()
 
 
@@ -44,6 +55,8 @@ def book():
     guests = data.get("guests")
     date = data.get("date", "").strip()
     time_slot = data.get("time", "").strip()
+    phone = data.get("phone", "").strip()
+    notes = data.get("notes", "").strip()
 
     if not name:
         return jsonify({"error": "Name is required"}), 400
@@ -55,11 +68,13 @@ def book():
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
+    if not phone:
+        return jsonify({"error": "Phone number is required"}), 400
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
-        (name, int(guests), date, time_slot),
+        "INSERT INTO bookings (name, guests, date, time, phone, notes) VALUES (?, ?, ?, ?, ?, ?)",
+        (name, int(guests), date, time_slot, phone, notes),
     )
     conn.commit()
     conn.close()
@@ -91,6 +106,8 @@ def api_bookings():
             "guests": b["guests"],
             "date": b["date"],
             "time": b["time"],
+            "phone": b["phone"],
+            "notes": b["notes"],
         }
         for b in bookings
     ]
