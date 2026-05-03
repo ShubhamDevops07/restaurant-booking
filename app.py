@@ -124,6 +124,29 @@ def api_stats():
     })
 
 
+@app.route("/api/bookings/search")
+def search_bookings():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify([])
+    conn = get_db()
+    bookings = conn.execute(
+        "SELECT * FROM bookings WHERE name LIKE ? ORDER BY date, time",
+        (f"%{query}%",),
+    ).fetchall()
+    conn.close()
+    return jsonify([
+        {
+            "id": b["id"],
+            "name": b["name"],
+            "guests": b["guests"],
+            "date": b["date"],
+            "time": b["time"],
+        }
+        for b in bookings
+    ])
+
+
 @app.route("/health")
 def health():
     status = {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
