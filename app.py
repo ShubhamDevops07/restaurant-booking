@@ -1,7 +1,9 @@
 import sqlite3
 import os
+import csv
+import io
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
 
 app = Flask(__name__)
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "restaurant.db")
@@ -122,6 +124,25 @@ def api_stats():
         "popular_time": popular_time["time"] if popular_time else None,
         "busiest_day": busiest_day["date"] if busiest_day else None,
     })
+
+
+@app.route("/api/export")
+def export_bookings():
+    conn = get_db()
+    bookings = conn.execute("SELECT * FROM bookings ORDER BY date, time").fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Name", "Guests", "Date", "Time", "Created At"])
+    for b in bookings:
+        writer.writerow([b["id"], b["name"], b["guests"], b["date"], b["time"], b["created_at"]])
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=bookings_export.csv"},
+    )
 
 
 @app.route("/health")
