@@ -97,15 +97,6 @@
         }
         .btn-cancel:hover { background: #e94560; color: #fff; }
 
-        .msg {
-            margin-top: 14px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .msg.success { background: #1a3a2a; color: #4ade80; border: 1px solid #2a5a3a; display: block; }
-        .msg.error { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; display: block; }
 
         /* Calendar */
         .cal-nav {
@@ -224,7 +215,7 @@
             margin: 0 auto 20px;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
         }
         .stat-card {
@@ -266,12 +257,64 @@
         footer .hours span { color: #e94560; font-weight: 600; }
         footer select optgroup { color: #aaa; font-style: normal; }
 
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-width: 280px;
+            max-width: 400px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            transform: translateX(120%);
+            animation: toastIn 0.4s ease forwards;
+        }
+        .toast.removing {
+            animation: toastOut 0.3s ease forwards;
+        }
+        .toast.success {
+            background: #1a3a2a;
+            color: #4ade80;
+            border: 1px solid #2a5a3a;
+        }
+        .toast.error {
+            background: #3a1a1a;
+            color: #f87171;
+            border: 1px solid #5a2a2a;
+        }
+        @keyframes toastIn {
+            to { transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            to { transform: translateX(120%); opacity: 0; }
+        }
+
+        /* Booking card animation */
+        .booking-card {
+            animation: cardSlideIn 0.3s ease forwards;
+        }
+        @keyframes cardSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
             footer { flex-direction: column; gap: 10px; text-align: center; }
             footer .hours { flex-direction: column; gap: 4px; }
+            .toast-container { left: 20px; right: 20px; }
+            .toast { min-width: auto; }
         }
     </style>
 </head>
@@ -298,7 +341,13 @@
             <div class="stat-value" id="statPopularTime">-</div>
             <div class="stat-label">Popular Time</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statBusiestDay">-</div>
+            <div class="stat-label">Busiest Day</div>
+        </div>
     </div>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <div class="container">
         <!-- Booking Form -->
@@ -347,7 +396,6 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
             </form>
-            <div id="formMsg" class="msg"></div>
         </div>
 
         <!-- Calendar -->
@@ -409,6 +457,12 @@
                     document.getElementById('statUpcoming').textContent = data.upcoming_bookings;
                     document.getElementById('statGuests').textContent = data.total_guests;
                     document.getElementById('statPopularTime').textContent = data.popular_time || '-';
+                    if (data.busiest_day) {
+                        const bd = new Date(data.busiest_day + 'T12:00:00');
+                        document.getElementById('statBusiestDay').textContent = bd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    } else {
+                        document.getElementById('statBusiestDay').textContent = '-';
+                    }
                 });
         }
 
@@ -522,10 +576,21 @@
             detail.style.display = 'block';
         }
 
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('removing');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
         // Form submit
         document.getElementById('bookingForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const msg = document.getElementById('formMsg');
 
             const payload = {
                 name: document.getElementById('name').value,
@@ -541,14 +606,11 @@
             })
             .then(r => r.json().then(data => ({ ok: r.ok, data })))
             .then(({ ok, data }) => {
-                msg.className = 'msg ' + (ok ? 'success' : 'error');
-                msg.textContent = data.message || data.error;
-                msg.style.display = 'block';
+                showToast(data.message || data.error, ok ? 'success' : 'error');
                 if (ok) {
                     document.getElementById('bookingForm').reset();
                     document.getElementById('date').value = new Date().toISOString().split('T')[0];
                     document.getElementById('guests').value = 2;
-                    // Auto-select the booked date on calendar
                     const bookedDate = payload.date;
                     const d = new Date(bookedDate + 'T12:00:00');
                     calYear = d.getFullYear();
@@ -556,7 +618,6 @@
                     selectedDate = bookedDate;
                     fetchBookings();
                 }
-                setTimeout(() => { msg.style.display = 'none'; }, 4000);
             });
         });
 
@@ -565,7 +626,10 @@
             fetch(`/cancel/${id}`, { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success) fetchBookings();
+                    if (data.success) {
+                        showToast('Booking cancelled successfully', 'success');
+                        fetchBookings();
+                    }
                 });
         }
     </script>
