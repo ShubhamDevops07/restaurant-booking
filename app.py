@@ -114,11 +114,13 @@ def api_stats():
     busiest_day = conn.execute(
         "SELECT date, COUNT(*) as c FROM bookings GROUP BY date ORDER BY c DESC LIMIT 1"
     ).fetchone()
+    avg_party = round(total_guests / total, 1) if total > 0 else 0
     conn.close()
     return jsonify({
         "total_bookings": total,
         "upcoming_bookings": upcoming,
         "total_guests": total_guests,
+        "avg_party_size": avg_party,
         "popular_time": popular_time["time"] if popular_time else None,
         "busiest_day": busiest_day["date"] if busiest_day else None,
     })
