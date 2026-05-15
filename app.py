@@ -19,12 +19,17 @@ def init_db():
         CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            phone TEXT DEFAULT '',
             guests INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    try:
+        conn.execute("ALTER TABLE bookings ADD COLUMN phone TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
@@ -41,6 +46,7 @@ def index():
 def book():
     data = request.get_json()
     name = data.get("name", "").strip()
+    phone = data.get("phone", "").strip()
     guests = data.get("guests")
     date = data.get("date", "").strip()
     time_slot = data.get("time", "").strip()
@@ -58,8 +64,8 @@ def book():
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
-        (name, int(guests), date, time_slot),
+        "INSERT INTO bookings (name, phone, guests, date, time) VALUES (?, ?, ?, ?, ?)",
+        (name, phone, int(guests), date, time_slot),
     )
     conn.commit()
     conn.close()
@@ -88,6 +94,7 @@ def api_bookings():
         {
             "id": b["id"],
             "name": b["name"],
+            "phone": b["phone"] or "",
             "guests": b["guests"],
             "date": b["date"],
             "time": b["time"],
