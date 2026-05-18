@@ -218,6 +218,80 @@
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
 
+        /* Card entrance animation */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-12px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .booking-card { animation: slideIn 0.3s ease forwards; }
+        .booking-card:nth-child(2) { animation-delay: 0.05s; }
+        .booking-card:nth-child(3) { animation-delay: 0.1s; }
+        .booking-card:nth-child(4) { animation-delay: 0.15s; }
+        .booking-card:nth-child(5) { animation-delay: 0.2s; }
+
+        /* Search */
+        .search-box {
+            max-width: 1200px;
+            margin: 0 auto 10px;
+            padding: 0 20px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 18px 12px 42px;
+            background: #1a1a2e;
+            border: 1px solid #16213e;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .search-box input::placeholder { color: #555; }
+        .search-box .search-icon {
+            position: absolute;
+            left: 34px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+        .search-results {
+            max-width: 1200px;
+            margin: 0 auto 16px;
+            padding: 0 20px;
+            display: none;
+        }
+        .search-results.active { display: block; }
+        .search-results .sr-header {
+            color: #8888aa;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .search-results .sr-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+        .search-results .sr-card {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 14px 18px;
+            border-left: 3px solid #e94560;
+            cursor: pointer;
+            transition: background 0.2s;
+            animation: slideIn 0.25s ease forwards;
+        }
+        .search-results .sr-card:hover { background: #222244; }
+        .search-results .sr-card .sr-name { color: #fff; font-weight: 600; font-size: 0.92rem; }
+        .search-results .sr-card .sr-detail { color: #888; font-size: 0.82rem; margin-top: 4px; }
+
         /* Stats bar */
         .stats-bar {
             max-width: 1200px;
@@ -298,6 +372,15 @@
             <div class="stat-value" id="statPopularTime">-</div>
             <div class="stat-label">Popular Time</div>
         </div>
+    </div>
+
+    <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search bookings by name..." autocomplete="off">
+    </div>
+    <div class="search-results" id="searchResults">
+        <div class="sr-header" id="searchHeader"></div>
+        <div class="sr-list" id="searchList"></div>
     </div>
 
     <div class="container">
@@ -567,6 +650,54 @@
                 .then(data => {
                     if (data.success) fetchBookings();
                 });
+        }
+
+        // Search functionality
+        let searchTimeout = null;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const q = this.value.trim();
+            clearTimeout(searchTimeout);
+
+            if (q.length < 2) {
+                document.getElementById('searchResults').className = 'search-results';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/api/bookings/search?q=${encodeURIComponent(q)}`)
+                    .then(r => r.json())
+                    .then(results => {
+                        const container = document.getElementById('searchResults');
+                        const header = document.getElementById('searchHeader');
+                        const list = document.getElementById('searchList');
+
+                        if (results.length === 0) {
+                            header.textContent = `No results for "${q}"`;
+                            list.innerHTML = '';
+                        } else {
+                            header.textContent = `${results.length} booking${results.length > 1 ? 's' : ''} found`;
+                            list.innerHTML = results.map(b => {
+                                const d = new Date(b.date + 'T12:00:00');
+                                const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                return `<div class="sr-card" onclick="jumpToBooking('${b.date}')">
+                                    <div class="sr-name">${b.name}</div>
+                                    <div class="sr-detail">${dateLabel} &middot; ${b.time} &middot; ${b.guests} guest${b.guests > 1 ? 's' : ''}</div>
+                                </div>`;
+                            }).join('');
+                        }
+                        container.className = 'search-results active';
+                    });
+            }, 300);
+        });
+
+        function jumpToBooking(dateStr) {
+            const d = new Date(dateStr + 'T12:00:00');
+            calYear = d.getFullYear();
+            calMonth = d.getMonth();
+            selectedDate = dateStr;
+            renderCalendar();
+            showDay(dateStr);
+            document.getElementById('dayDetail').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     </script>
 </body>
