@@ -217,6 +217,13 @@
         }
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
+        .booking-info .b-notes {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.82rem;
+            color: #aaa;
+            font-style: italic;
+        }
 
         /* Stats bar */
         .stats-bar {
@@ -316,6 +323,10 @@
                 <div class="form-group">
                     <label>Date</label>
                     <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label>Special Requests</label>
+                    <textarea id="notes" placeholder="Allergies, dietary needs, seating preferences..." rows="2" style="width:100%;padding:10px 14px;background:#16213e;border:1px solid #2a2a4a;border-radius:8px;color:#e0e0e0;font-size:0.95rem;font-family:inherit;resize:vertical;transition:border-color 0.2s;" onfocus="this.style.borderColor='#e94560'" onblur="this.style.borderColor='#2a2a4a'"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Time Slot</label>
@@ -513,6 +524,7 @@
                             <span class="b-name">${b.name}</span>
                             <span class="b-meta">${b.time}</span>
                             <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                            ${b.notes ? `<span class="b-notes">${b.notes}</span>` : ''}
                         </div>
                         <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
                     </div>
@@ -531,7 +543,8 @@
                 name: document.getElementById('name').value,
                 guests: document.getElementById('guests').value,
                 date: document.getElementById('date').value,
-                time: document.getElementById('time').value
+                time: document.getElementById('time').value,
+                notes: document.getElementById('notes').value
             };
 
             fetch('/book', {
