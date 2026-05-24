@@ -167,6 +167,8 @@
             border-radius: 50%;
             background: #e94560;
         }
+        .cal-day.past { opacity: 0.35; cursor: default; }
+        .cal-day.past:hover { background: #16213e; }
         .cal-day.selected .dot { background: #fff; }
         .cal-day .tooltip {
             display: none;
@@ -217,6 +219,16 @@
         }
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .booking-card { animation: fadeSlideIn 0.3s ease forwards; }
+        .booking-card:nth-child(2) { animation-delay: 0.05s; }
+        .booking-card:nth-child(3) { animation-delay: 0.1s; }
+        .booking-card:nth-child(4) { animation-delay: 0.15s; }
+        .booking-card:nth-child(5) { animation-delay: 0.2s; }
 
         /* Stats bar */
         .stats-bar {
@@ -384,8 +396,10 @@
         calYear = now.getFullYear();
         calMonth = now.getMonth();
 
-        // Set default date to today
-        document.getElementById('date').value = now.toISOString().split('T')[0];
+        // Set default date to today and prevent past date selection
+        const todayISO = now.toISOString().split('T')[0];
+        document.getElementById('date').value = todayISO;
+        document.getElementById('date').min = todayISO;
 
         // Load bookings then render
         fetchBookings();
@@ -446,7 +460,10 @@
                 const isSelected = dateStr === selectedDate;
                 const dayBookings = byDate[dateStr] || [];
 
+                const isPast = dateStr < todayStr;
+
                 let classes = 'cal-day';
+                if (isPast) classes += ' past';
                 if (isToday) classes += ' today';
                 if (isSelected) classes += ' selected';
 
