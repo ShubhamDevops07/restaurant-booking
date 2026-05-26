@@ -266,6 +266,30 @@
         footer .hours span { color: #e94560; font-weight: 600; }
         footer select optgroup { color: #aaa; font-style: normal; }
 
+        /* Export button */
+        .export-bar {
+            max-width: 1200px;
+            margin: 0 auto 10px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-export {
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            color: #e0e0e0;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-export:hover { border-color: #e94560; color: #e94560; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
@@ -298,6 +322,12 @@
             <div class="stat-value" id="statPopularTime">-</div>
             <div class="stat-label">Popular Time</div>
         </div>
+    </div>
+
+    <div class="export-bar">
+        <button class="btn-export" onclick="window.location.href='/api/export'" title="Download all bookings as CSV">
+            &#128229; Export CSV
+        </button>
     </div>
 
     <div class="container">
