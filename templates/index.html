@@ -54,7 +54,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px 14px;
             background: #16213e;
@@ -64,10 +64,22 @@
             font-size: 0.95rem;
             transition: border-color 0.2s;
         }
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #e94560;
         }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        .form-group .char-count {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+        }
+        .form-group .char-count.warn { color: #e94560; }
         .form-group select option { background: #16213e; }
         .form-group select optgroup { background: #0f0f23; color: #e94560; font-style: normal; }
 
@@ -217,6 +229,14 @@
         }
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
+        .booking-notes {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #2a2a4a;
+            font-style: italic;
+        }
 
         /* Stats bar */
         .stats-bar {
@@ -345,6 +365,11 @@
                         </optgroup>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Special Requests (optional)</label>
+                    <textarea id="notes" placeholder="Dietary restrictions, celebrations, seating preferences..." maxlength="500"></textarea>
+                    <div class="char-count" id="charCount">0 / 500</div>
+                </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
             </form>
             <div id="formMsg" class="msg"></div>
@@ -378,6 +403,20 @@
     <script>
         let allBookings = [];
         let calYear, calMonth, selectedDate = null;
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Character counter for notes field
+        document.getElementById('notes').addEventListener('input', function() {
+            const count = this.value.length;
+            const el = document.getElementById('charCount');
+            el.textContent = `${count} / 500`;
+            el.className = count > 450 ? 'char-count warn' : 'char-count';
+        });
 
         // Init calendar to current month
         const now = new Date();
@@ -509,12 +548,15 @@
                 const summaryHtml = `<div class="day-summary">${dayBookings.length} booking${dayBookings.length > 1 ? 's' : ''} &middot; ${totalGuests} total guest${totalGuests > 1 ? 's' : ''}</div>`;
                 container.innerHTML = summaryHtml + dayBookings.map(b => `
                     <div class="booking-card" id="booking-${b.id}">
-                        <div class="booking-info">
-                            <span class="b-name">${b.name}</span>
-                            <span class="b-meta">${b.time}</span>
-                            <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                        <div style="flex:1">
+                            <div class="booking-info">
+                                <span class="b-name">${b.name}</span>
+                                <span class="b-meta">${b.time}</span>
+                                <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                                <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
+                            </div>
+                            ${b.notes ? `<div class="booking-notes">${escapeHtml(b.notes)}</div>` : ''}
                         </div>
-                        <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
                     </div>
                 `).join('');
             }
@@ -531,7 +573,8 @@
                 name: document.getElementById('name').value,
                 guests: document.getElementById('guests').value,
                 date: document.getElementById('date').value,
-                time: document.getElementById('time').value
+                time: document.getElementById('time').value,
+                notes: document.getElementById('notes').value
             };
 
             fetch('/book', {

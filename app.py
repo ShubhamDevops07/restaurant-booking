@@ -22,10 +22,21 @@ def init_db():
             guests INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
+            notes TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
+    conn.close()
+
+
+def migrate_db():
+    conn = get_db()
+    cursor = conn.execute("PRAGMA table_info(bookings)")
+    columns = [row["name"] for row in cursor.fetchall()]
+    if "notes" not in columns:
+        conn.execute("ALTER TABLE bookings ADD COLUMN notes TEXT DEFAULT ''")
+        conn.commit()
     conn.close()
 
 
@@ -44,6 +55,7 @@ def book():
     guests = data.get("guests")
     date = data.get("date", "").strip()
     time_slot = data.get("time", "").strip()
+    notes = data.get("notes", "").strip()
 
     if not name:
         return jsonify({"error": "Name is required"}), 400
@@ -55,11 +67,13 @@ def book():
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
+    if len(notes) > 500:
+        return jsonify({"error": "Notes must be under 500 characters"}), 400
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
-        (name, int(guests), date, time_slot),
+        "INSERT INTO bookings (name, guests, date, time, notes) VALUES (?, ?, ?, ?, ?)",
+        (name, int(guests), date, time_slot, notes),
     )
     conn.commit()
     conn.close()
@@ -91,6 +105,7 @@ def api_bookings():
             "guests": b["guests"],
             "date": b["date"],
             "time": b["time"],
+            "notes": b["notes"] or "",
         }
         for b in bookings
     ]
@@ -140,4 +155,5 @@ def health():
 
 if __name__ == "__main__":
     init_db()
+    migrate_db()
     app.run(host="0.0.0.0", port=3000, debug=True)
