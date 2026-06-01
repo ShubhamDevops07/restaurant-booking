@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Bookings</title>
+    <meta name="description" content="La Maison - Book your fine dining experience. Reserve a table for lunch or dinner online.">
+    <meta name="theme-color" content="#e94560">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>La Maison - Table Reservations</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -276,7 +280,7 @@
     </style>
 </head>
 <body>
-    <header>
+    <header role="banner">
         <h1>La Maison - Table Reservations</h1>
         <p>Book your dining experience</p>
     </header>
@@ -300,25 +304,25 @@
         </div>
     </div>
 
-    <div class="container">
+    <main class="container" role="main">
         <!-- Booking Form -->
         <div class="panel">
             <h2>Make a Reservation</h2>
-            <form id="bookingForm">
+            <form id="bookingForm" aria-label="Table reservation form">
                 <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="name" placeholder="Your full name" required>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" placeholder="Your full name" required autocomplete="name">
                 </div>
                 <div class="form-group">
-                    <label>Number of Guests</label>
+                    <label for="guests">Number of Guests</label>
                     <input type="number" id="guests" min="1" max="20" value="2" required>
                 </div>
                 <div class="form-group">
-                    <label>Date</label>
+                    <label for="date">Date</label>
                     <input type="date" id="date" required>
                 </div>
                 <div class="form-group">
-                    <label>Time Slot</label>
+                    <label for="time">Time Slot</label>
                     <select id="time" required>
                         <option value="">Select a time slot</option>
                         <optgroup label="Lunch (11:30 AM - 2:30 PM)">
@@ -347,11 +351,11 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
             </form>
-            <div id="formMsg" class="msg"></div>
+            <div id="formMsg" class="msg" role="alert" aria-live="polite"></div>
         </div>
 
         <!-- Calendar -->
-        <div class="panel">
+        <div class="panel" aria-label="Booking calendar">
             <h2>Booking Calendar</h2>
             <div class="cal-nav">
                 <button onclick="changeMonth(-1)">&larr; Prev</button>
@@ -359,15 +363,15 @@
                 <button onclick="goToToday()" style="font-size:0.78rem; padding:4px 10px;">Today</button>
                 <button onclick="changeMonth(1)">Next &rarr;</button>
             </div>
-            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-grid" id="calGrid" role="grid" aria-label="Calendar"></div>
             <div class="day-detail" id="dayDetail" style="display:none;">
                 <h3 id="dayTitle"></h3>
                 <div id="dayBookings"></div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <footer>
+    <footer role="contentinfo">
         <div>La Maison &copy; 2026 &mdash; Fine Dining &amp; Reservations</div>
         <div class="hours">
             <div>Lunch: <span>11:30 AM &ndash; 2:30 PM</span></div>
