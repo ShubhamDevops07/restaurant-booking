@@ -22,9 +22,22 @@ def init_db():
             guests INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
+            notes TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS _migrations (key TEXT PRIMARY KEY)
+    """)
+    migrated = conn.execute(
+        "SELECT 1 FROM _migrations WHERE key = 'add_notes_column'"
+    ).fetchone()
+    if not migrated:
+        try:
+            conn.execute("ALTER TABLE bookings ADD COLUMN notes TEXT DEFAULT ''")
+        except Exception:
+            pass
+        conn.execute("INSERT OR IGNORE INTO _migrations (key) VALUES ('add_notes_column')")
     conn.commit()
     conn.close()
 
@@ -45,6 +58,8 @@ def book():
     date = data.get("date", "").strip()
     time_slot = data.get("time", "").strip()
 
+    notes = data.get("notes", "").strip()
+
     if not name:
         return jsonify({"error": "Name is required"}), 400
     if not guests or int(guests) < 1:
@@ -55,11 +70,17 @@ def book():
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
+    if len(notes) > 500:
+        return jsonify({"error": "Notes must be under 500 characters"}), 400
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    if date < today:
+        return jsonify({"error": "Cannot book a date in the past"}), 400
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
-        (name, int(guests), date, time_slot),
+        "INSERT INTO bookings (name, guests, date, time, notes) VALUES (?, ?, ?, ?, ?)",
+        (name, int(guests), date, time_slot, notes),
     )
     conn.commit()
     conn.close()
@@ -91,6 +112,7 @@ def api_bookings():
             "guests": b["guests"],
             "date": b["date"],
             "time": b["time"],
+            "notes": b["notes"] or "",
         }
         for b in bookings
     ]
