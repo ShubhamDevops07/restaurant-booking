@@ -224,7 +224,7 @@
             margin: 0 auto 20px;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
         }
         .stat-card {
@@ -270,6 +270,7 @@
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .stats-bar .stat-card:last-child { grid-column: 1 / -1; }
             footer { flex-direction: column; gap: 10px; text-align: center; }
             footer .hours { flex-direction: column; gap: 4px; }
         }
@@ -293,6 +294,10 @@
         <div class="stat-card">
             <div class="stat-value" id="statGuests">-</div>
             <div class="stat-label">Total Guests</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statAvgParty">-</div>
+            <div class="stat-label">Avg Party Size</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="statPopularTime">-</div>
@@ -408,6 +413,7 @@
                     document.getElementById('statTotal').textContent = data.total_bookings;
                     document.getElementById('statUpcoming').textContent = data.upcoming_bookings;
                     document.getElementById('statGuests').textContent = data.total_guests;
+                    document.getElementById('statAvgParty').textContent = data.avg_party_size || '-';
                     document.getElementById('statPopularTime').textContent = data.popular_time || '-';
                 });
         }

@@ -108,6 +108,9 @@ def api_stats():
     total_guests = conn.execute(
         "SELECT COALESCE(SUM(guests), 0) as s FROM bookings"
     ).fetchone()["s"]
+    avg_party = conn.execute(
+        "SELECT COALESCE(ROUND(AVG(guests), 1), 0) as a FROM bookings"
+    ).fetchone()["a"]
     popular_time = conn.execute(
         "SELECT time, COUNT(*) as c FROM bookings GROUP BY time ORDER BY c DESC LIMIT 1"
     ).fetchone()
@@ -119,6 +122,7 @@ def api_stats():
         "total_bookings": total,
         "upcoming_bookings": upcoming,
         "total_guests": total_guests,
+        "avg_party_size": avg_party,
         "popular_time": popular_time["time"] if popular_time else None,
         "busiest_day": busiest_day["date"] if busiest_day else None,
     })
