@@ -1,3 +1,5 @@
+"""La Maison Restaurant - Table reservation system powered by Flask and SQLite."""
+
 import sqlite3
 import os
 from datetime import datetime
@@ -8,12 +10,14 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "restaurant.d
 
 
 def get_db():
+    """Open a connection to the SQLite database with row-factory enabled."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
+    """Create the bookings table if it does not already exist."""
     conn = get_db()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
@@ -31,6 +35,7 @@ def init_db():
 
 @app.route("/")
 def index():
+    """Render the main reservation page with all current bookings."""
     conn = get_db()
     bookings = conn.execute("SELECT * FROM bookings ORDER BY date, time").fetchall()
     conn.close()
@@ -39,6 +44,7 @@ def index():
 
 @app.route("/book", methods=["POST"])
 def book():
+    """Create a new booking after validating the request payload."""
     data = request.get_json()
     name = data.get("name", "").strip()
     guests = data.get("guests")
@@ -68,6 +74,7 @@ def book():
 
 @app.route("/cancel/<int:booking_id>", methods=["POST"])
 def cancel(booking_id):
+    """Cancel an existing booking by its ID."""
     conn = get_db()
     row = conn.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,)).fetchone()
     if not row:
@@ -81,6 +88,7 @@ def cancel(booking_id):
 
 @app.route("/api/bookings")
 def api_bookings():
+    """Return all bookings as JSON, sorted by date and time."""
     conn = get_db()
     bookings = conn.execute("SELECT * FROM bookings ORDER BY date, time").fetchall()
     conn.close()
@@ -99,6 +107,7 @@ def api_bookings():
 
 @app.route("/api/stats")
 def api_stats():
+    """Return aggregate booking statistics (totals, upcoming, popular time)."""
     conn = get_db()
     total = conn.execute("SELECT COUNT(*) as c FROM bookings").fetchone()["c"]
     upcoming = conn.execute(
@@ -126,6 +135,7 @@ def api_stats():
 
 @app.route("/health")
 def health():
+    """Health-check endpoint reporting service and database connectivity."""
     status = {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
     try:
         conn = get_db()

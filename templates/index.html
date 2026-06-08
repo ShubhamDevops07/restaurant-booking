@@ -276,50 +276,51 @@
     </style>
 </head>
 <body>
-    <header>
+    <header role="banner">
         <h1>La Maison - Table Reservations</h1>
         <p>Book your dining experience</p>
     </header>
 
-    <div class="stats-bar" id="statsBar">
-        <div class="stat-card">
-            <div class="stat-value" id="statTotal">-</div>
+    <section class="stats-bar" id="statsBar" aria-label="Booking statistics">
+        <div class="stat-card" role="status" aria-label="Total bookings">
+            <div class="stat-value" id="statTotal" aria-live="polite">-</div>
             <div class="stat-label">Total Bookings</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" id="statUpcoming">-</div>
+        <div class="stat-card" role="status" aria-label="Upcoming bookings">
+            <div class="stat-value" id="statUpcoming" aria-live="polite">-</div>
             <div class="stat-label">Upcoming</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" id="statGuests">-</div>
+        <div class="stat-card" role="status" aria-label="Total guests">
+            <div class="stat-value" id="statGuests" aria-live="polite">-</div>
             <div class="stat-label">Total Guests</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" id="statPopularTime">-</div>
+        <div class="stat-card" role="status" aria-label="Most popular time slot">
+            <div class="stat-value" id="statPopularTime" aria-live="polite">-</div>
             <div class="stat-label">Popular Time</div>
         </div>
-    </div>
+    </section>
 
-    <div class="container">
+    <main class="container">
         <!-- Booking Form -->
         <div class="panel">
             <h2>Make a Reservation</h2>
-            <form id="bookingForm">
+            <form id="bookingForm" aria-label="Table reservation form">
                 <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="name" placeholder="Your full name" required>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" placeholder="Your full name" required aria-required="true">
                 </div>
                 <div class="form-group">
-                    <label>Number of Guests</label>
-                    <input type="number" id="guests" min="1" max="20" value="2" required>
+                    <label for="guests">Number of Guests</label>
+                    <input type="number" id="guests" min="1" max="20" value="2" required aria-required="true" aria-describedby="guestLimit">
+                    <small id="guestLimit" style="color:#666;font-size:0.75rem;">Maximum 20 guests per booking</small>
                 </div>
                 <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="date" required>
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required aria-required="true">
                 </div>
                 <div class="form-group">
-                    <label>Time Slot</label>
-                    <select id="time" required>
+                    <label for="time">Time Slot</label>
+                    <select id="time" required aria-required="true">
                         <option value="">Select a time slot</option>
                         <optgroup label="Lunch (11:30 AM - 2:30 PM)">
                             <option value="11:30 AM">11:30 AM</option>
@@ -345,31 +346,31 @@
                         </optgroup>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary">Reserve Table</button>
+                <button type="submit" class="btn btn-primary" aria-label="Submit reservation">Reserve Table</button>
             </form>
-            <div id="formMsg" class="msg"></div>
+            <div id="formMsg" class="msg" role="alert" aria-live="assertive"></div>
         </div>
 
         <!-- Calendar -->
-        <div class="panel">
+        <div class="panel" role="region" aria-label="Booking calendar">
             <h2>Booking Calendar</h2>
-            <div class="cal-nav">
-                <button onclick="changeMonth(-1)">&larr; Prev</button>
-                <span id="calTitle"></span>
-                <button onclick="goToToday()" style="font-size:0.78rem; padding:4px 10px;">Today</button>
-                <button onclick="changeMonth(1)">Next &rarr;</button>
-            </div>
-            <div class="cal-grid" id="calGrid"></div>
-            <div class="day-detail" id="dayDetail" style="display:none;">
+            <nav class="cal-nav" aria-label="Calendar navigation">
+                <button onclick="changeMonth(-1)" aria-label="Previous month">&larr; Prev</button>
+                <span id="calTitle" aria-live="polite"></span>
+                <button onclick="goToToday()" style="font-size:0.78rem; padding:4px 10px;" aria-label="Go to today">Today</button>
+                <button onclick="changeMonth(1)" aria-label="Next month">Next &rarr;</button>
+            </nav>
+            <div class="cal-grid" id="calGrid" role="grid" aria-label="Calendar days"></div>
+            <div class="day-detail" id="dayDetail" style="display:none;" aria-live="polite">
                 <h3 id="dayTitle"></h3>
                 <div id="dayBookings"></div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <footer>
+    <footer role="contentinfo">
         <div>La Maison &copy; 2026 &mdash; Fine Dining &amp; Reservations</div>
-        <div class="hours">
+        <div class="hours" aria-label="Operating hours">
             <div>Lunch: <span>11:30 AM &ndash; 2:30 PM</span></div>
             <div>Dinner: <span>5:00 PM &ndash; 10:00 PM</span></div>
         </div>
