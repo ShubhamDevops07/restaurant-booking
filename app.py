@@ -22,10 +22,16 @@ def init_db():
             guests INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
+            notes TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
+    try:
+        conn.execute("ALTER TABLE bookings ADD COLUMN notes TEXT DEFAULT ''")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
     conn.close()
 
 
@@ -44,6 +50,7 @@ def book():
     guests = data.get("guests")
     date = data.get("date", "").strip()
     time_slot = data.get("time", "").strip()
+    notes = data.get("notes", "").strip()
 
     if not name:
         return jsonify({"error": "Name is required"}), 400
@@ -58,8 +65,8 @@ def book():
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
-        (name, int(guests), date, time_slot),
+        "INSERT INTO bookings (name, guests, date, time, notes) VALUES (?, ?, ?, ?, ?)",
+        (name, int(guests), date, time_slot, notes),
     )
     conn.commit()
     conn.close()
@@ -91,6 +98,7 @@ def api_bookings():
             "guests": b["guests"],
             "date": b["date"],
             "time": b["time"],
+            "notes": b["notes"] or "",
         }
         for b in bookings
     ]
