@@ -8,12 +8,14 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "restaurant.d
 
 
 def get_db():
+    """Open a connection to the SQLite database with Row factory enabled."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
+    """Create the bookings table if it does not already exist."""
     conn = get_db()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
@@ -31,6 +33,7 @@ def init_db():
 
 @app.route("/")
 def index():
+    """Render the main page with all bookings listed."""
     conn = get_db()
     bookings = conn.execute("SELECT * FROM bookings ORDER BY date, time").fetchall()
     conn.close()
@@ -39,6 +42,7 @@ def index():
 
 @app.route("/book", methods=["POST"])
 def book():
+    """Validate and create a new table reservation from JSON payload."""
     data = request.get_json()
     name = data.get("name", "").strip()
     guests = data.get("guests")
@@ -68,6 +72,7 @@ def book():
 
 @app.route("/cancel/<int:booking_id>", methods=["POST"])
 def cancel(booking_id):
+    """Cancel an existing booking by its ID, returning 404 if not found."""
     conn = get_db()
     row = conn.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,)).fetchone()
     if not row:
@@ -81,6 +86,7 @@ def cancel(booking_id):
 
 @app.route("/api/bookings")
 def api_bookings():
+    """Return all bookings as a JSON array, sorted by date and time."""
     conn = get_db()
     bookings = conn.execute("SELECT * FROM bookings ORDER BY date, time").fetchall()
     conn.close()
@@ -99,6 +105,7 @@ def api_bookings():
 
 @app.route("/api/stats")
 def api_stats():
+    """Aggregate booking statistics: totals, upcoming count, popular time, and busiest day."""
     conn = get_db()
     total = conn.execute("SELECT COUNT(*) as c FROM bookings").fetchone()["c"]
     upcoming = conn.execute(
@@ -126,6 +133,7 @@ def api_stats():
 
 @app.route("/health")
 def health():
+    """Return service health including database connectivity check."""
     status = {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
     try:
         conn = get_db()
