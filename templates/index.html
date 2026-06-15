@@ -384,8 +384,10 @@
         calYear = now.getFullYear();
         calMonth = now.getMonth();
 
-        // Set default date to today
-        document.getElementById('date').value = now.toISOString().split('T')[0];
+        // Set default date to today and prevent past date selection
+        const todayISO = now.toISOString().split('T')[0];
+        document.getElementById('date').value = todayISO;
+        document.getElementById('date').setAttribute('min', todayISO);
 
         // Load bookings then render
         fetchBookings();
@@ -546,7 +548,9 @@
                 msg.style.display = 'block';
                 if (ok) {
                     document.getElementById('bookingForm').reset();
-                    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+                    const resetDate = new Date().toISOString().split('T')[0];
+                    document.getElementById('date').value = resetDate;
+                    document.getElementById('date').setAttribute('min', resetDate);
                     document.getElementById('guests').value = 2;
                     // Auto-select the booked date on calendar
                     const bookedDate = payload.date;
