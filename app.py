@@ -97,6 +97,27 @@ def api_bookings():
     return jsonify(result)
 
 
+@app.route("/api/bookings/today")
+def api_bookings_today():
+    today = datetime.now().strftime("%Y-%m-%d")
+    conn = get_db()
+    bookings = conn.execute(
+        "SELECT * FROM bookings WHERE date = ? ORDER BY time", (today,)
+    ).fetchall()
+    conn.close()
+    result = [
+        {
+            "id": b["id"],
+            "name": b["name"],
+            "guests": b["guests"],
+            "date": b["date"],
+            "time": b["time"],
+        }
+        for b in bookings
+    ]
+    return jsonify({"date": today, "count": len(result), "bookings": result})
+
+
 @app.route("/api/stats")
 def api_stats():
     conn = get_db()
