@@ -55,6 +55,8 @@ def book():
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
+    if date < datetime.now().strftime("%Y-%m-%d"):
+        return jsonify({"error": "Cannot book a date in the past"}), 400
 
     conn = get_db()
     conn.execute(
