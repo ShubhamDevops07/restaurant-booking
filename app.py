@@ -97,6 +97,30 @@ def api_bookings():
     return jsonify(result)
 
 
+@app.route("/api/bookings/search")
+def search_bookings():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify([])
+    conn = get_db()
+    bookings = conn.execute(
+        "SELECT * FROM bookings WHERE name LIKE ? ORDER BY date, time",
+        (f"%{query}%",),
+    ).fetchall()
+    conn.close()
+    result = [
+        {
+            "id": b["id"],
+            "name": b["name"],
+            "guests": b["guests"],
+            "date": b["date"],
+            "time": b["time"],
+        }
+        for b in bookings
+    ]
+    return jsonify(result)
+
+
 @app.route("/api/stats")
 def api_stats():
     conn = get_db()

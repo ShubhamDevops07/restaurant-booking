@@ -186,6 +186,36 @@
         }
         .cal-day:hover .tooltip { display: block; }
 
+        /* Search */
+        .search-box {
+            margin-bottom: 16px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .search-box input::placeholder { color: #555; }
+        .search-results {
+            margin-bottom: 16px;
+        }
+        .search-results .search-label {
+            color: #8888aa;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
         /* Day detail */
         .day-detail {
             margin-top: 20px;
@@ -353,6 +383,13 @@
         <!-- Calendar -->
         <div class="panel">
             <h2>Booking Calendar</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search bookings by guest name..." oninput="searchBookings(this.value)">
+            </div>
+            <div class="search-results" id="searchResults" style="display:none;">
+                <div class="search-label" id="searchLabel"></div>
+                <div id="searchList"></div>
+            </div>
             <div class="cal-nav">
                 <button onclick="changeMonth(-1)">&larr; Prev</button>
                 <span id="calTitle"></span>
@@ -559,6 +596,53 @@
                 setTimeout(() => { msg.style.display = 'none'; }, 4000);
             });
         });
+
+        let searchTimeout = null;
+        function searchBookings(query) {
+            clearTimeout(searchTimeout);
+            const results = document.getElementById('searchResults');
+            const list = document.getElementById('searchList');
+            const label = document.getElementById('searchLabel');
+
+            if (!query.trim()) {
+                results.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/api/bookings/search?q=${encodeURIComponent(query.trim())}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        results.style.display = 'block';
+                        if (data.length === 0) {
+                            label.textContent = 'No results found';
+                            list.innerHTML = '';
+                        } else {
+                            label.textContent = `${data.length} result${data.length > 1 ? 's' : ''}`;
+                            list.innerHTML = data.map(b => `
+                                <div class="booking-card" style="cursor:pointer" onclick="jumpToBooking('${b.date}')">
+                                    <div class="booking-info">
+                                        <span class="b-name">${b.name}</span>
+                                        <span class="b-meta">${b.date}</span>
+                                        <span class="b-meta">${b.time}</span>
+                                        <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                                    </div>
+                                    <button class="btn btn-cancel" onclick="event.stopPropagation(); cancelBooking(${b.id})">Cancel</button>
+                                </div>
+                            `).join('');
+                        }
+                    });
+            }, 300);
+        }
+
+        function jumpToBooking(dateStr) {
+            const d = new Date(dateStr + 'T12:00:00');
+            calYear = d.getFullYear();
+            calMonth = d.getMonth();
+            selectedDate = dateStr;
+            renderCalendar();
+            showDay(dateStr);
+        }
 
         function cancelBooking(id) {
             if (!confirm('Cancel this booking?')) return;
