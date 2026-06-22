@@ -345,6 +345,10 @@
                         </optgroup>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Special Requests</label>
+                    <textarea id="notes" rows="2" placeholder="Allergies, seating preference, occasion..." style="width:100%;padding:10px 14px;background:#16213e;border:1px solid #2a2a4a;border-radius:8px;color:#e0e0e0;font-size:0.95rem;font-family:inherit;resize:vertical;transition:border-color 0.2s;" onfocus="this.style.borderColor='#e94560'" onblur="this.style.borderColor='#2a2a4a'"></textarea>
+                </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
             </form>
             <div id="formMsg" class="msg"></div>
@@ -513,6 +517,7 @@
                             <span class="b-name">${b.name}</span>
                             <span class="b-meta">${b.time}</span>
                             <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                            ${b.notes ? `<div style="color:#8888aa;font-size:0.8rem;margin-top:4px;font-style:italic;width:100%;">${b.notes}</div>` : ''}
                         </div>
                         <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
                     </div>
@@ -531,7 +536,8 @@
                 name: document.getElementById('name').value,
                 guests: document.getElementById('guests').value,
                 date: document.getElementById('date').value,
-                time: document.getElementById('time').value
+                time: document.getElementById('time').value,
+                notes: document.getElementById('notes').value
             };
 
             fetch('/book', {
@@ -548,6 +554,7 @@
                     document.getElementById('bookingForm').reset();
                     document.getElementById('date').value = new Date().toISOString().split('T')[0];
                     document.getElementById('guests').value = 2;
+                    document.getElementById('notes').value = '';
                     // Auto-select the booked date on calendar
                     const bookedDate = payload.date;
                     const d = new Date(bookedDate + 'T12:00:00');
