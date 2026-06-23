@@ -56,6 +56,10 @@ def book():
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
 
+    today = datetime.now().strftime("%Y-%m-%d")
+    if date < today:
+        return jsonify({"error": "Cannot book a date in the past"}), 400
+
     conn = get_db()
     conn.execute(
         "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
