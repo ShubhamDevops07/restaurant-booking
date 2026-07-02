@@ -22,9 +22,14 @@ def init_db():
             guests INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
+            special_requests TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    try:
+        conn.execute("ALTER TABLE bookings ADD COLUMN special_requests TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
@@ -44,6 +49,7 @@ def book():
     guests = data.get("guests")
     date = data.get("date", "").strip()
     time_slot = data.get("time", "").strip()
+    special_requests = data.get("special_requests", "").strip()
 
     if not name:
         return jsonify({"error": "Name is required"}), 400
@@ -55,6 +61,8 @@ def book():
         return jsonify({"error": "Date is required"}), 400
     if not time_slot:
         return jsonify({"error": "Time slot is required"}), 400
+    if len(special_requests) > 500:
+        return jsonify({"error": "Special requests must be under 500 characters"}), 400
 
     try:
         booking_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -65,8 +73,8 @@ def book():
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
-        (name, int(guests), date, time_slot),
+        "INSERT INTO bookings (name, guests, date, time, special_requests) VALUES (?, ?, ?, ?, ?)",
+        (name, int(guests), date, time_slot, special_requests),
     )
     conn.commit()
     conn.close()
@@ -98,6 +106,7 @@ def api_bookings():
             "guests": b["guests"],
             "date": b["date"],
             "time": b["time"],
+            "special_requests": b["special_requests"] or "",
         }
         for b in bookings
     ]

@@ -54,7 +54,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px 14px;
             background: #16213e;
@@ -64,9 +64,20 @@
             font-size: 0.95rem;
             transition: border-color 0.2s;
         }
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #e94560;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        .form-group .char-count {
+            text-align: right;
+            font-size: 0.72rem;
+            color: #666;
+            margin-top: 4px;
         }
         .form-group select option { background: #16213e; }
         .form-group select optgroup { background: #0f0f23; color: #e94560; font-style: normal; }
@@ -217,6 +228,13 @@
         }
         .booking-info .b-name { color: #fff; font-weight: 600; }
         .booking-info .b-meta { color: #888; }
+        .booking-info .b-notes {
+            display: block;
+            color: #aaa;
+            font-size: 0.8rem;
+            font-style: italic;
+            margin-top: 4px;
+        }
 
         /* Stats bar */
         .stats-bar {
@@ -349,6 +367,11 @@
                             <option value="10:00 PM">10:00 PM</option>
                         </optgroup>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Special Requests <span style="color:#666; text-transform:none;">(optional)</span></label>
+                    <textarea id="specialRequests" placeholder="Allergies, seating preferences, celebrations..." maxlength="500" rows="2"></textarea>
+                    <div class="char-count"><span id="charCount">0</span>/500</div>
                 </div>
                 <button type="submit" class="btn btn-primary">Reserve Table</button>
             </form>
@@ -527,6 +550,7 @@
                             <span class="b-name">${b.name}</span>
                             <span class="b-meta">${b.time}</span>
                             <span class="b-meta">${b.guests} guest${b.guests > 1 ? 's' : ''}</span>
+                            ${b.special_requests ? `<span class="b-notes">${b.special_requests}</span>` : ''}
                         </div>
                         <button class="btn btn-cancel" onclick="cancelBooking(${b.id})">Cancel</button>
                     </div>
@@ -545,7 +569,8 @@
                 name: document.getElementById('name').value,
                 guests: document.getElementById('guests').value,
                 date: document.getElementById('date').value,
-                time: document.getElementById('time').value
+                time: document.getElementById('time').value,
+                special_requests: document.getElementById('specialRequests').value
             };
 
             fetch('/book', {
@@ -584,6 +609,10 @@
                     if (data.success) fetchBookings();
                 });
         }
+
+        document.getElementById('specialRequests').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
     </script>
 </body>
 </html>
