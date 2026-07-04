@@ -64,6 +64,14 @@ def book():
         return jsonify({"error": "Invalid date format"}), 400
 
     conn = get_db()
+    existing = conn.execute(
+        "SELECT id FROM bookings WHERE LOWER(name) = LOWER(?) AND date = ? AND time = ?",
+        (name, date, time_slot),
+    ).fetchone()
+    if existing:
+        conn.close()
+        return jsonify({"error": f"A booking for {name} already exists on {date} at {time_slot}"}), 409
+
     conn.execute(
         "INSERT INTO bookings (name, guests, date, time) VALUES (?, ?, ?, ?)",
         (name, int(guests), date, time_slot),
@@ -121,6 +129,9 @@ def api_stats():
     busiest_day = conn.execute(
         "SELECT date, COUNT(*) as c FROM bookings GROUP BY date ORDER BY c DESC LIMIT 1"
     ).fetchone()
+    avg_party = conn.execute(
+        "SELECT ROUND(AVG(guests), 1) as a FROM bookings"
+    ).fetchone()["a"]
     conn.close()
     return jsonify({
         "total_bookings": total,
@@ -128,6 +139,7 @@ def api_stats():
         "total_guests": total_guests,
         "popular_time": popular_time["time"] if popular_time else None,
         "busiest_day": busiest_day["date"] if busiest_day else None,
+        "avg_party_size": avg_party or 0,
     })
 
 
