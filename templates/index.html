@@ -103,7 +103,10 @@
             border-radius: 8px;
             font-size: 0.9rem;
             display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
+        .msg.show { opacity: 1; }
         .msg.success { background: #1a3a2a; color: #4ade80; border: 1px solid #2a5a3a; display: block; }
         .msg.error { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; display: block; }
 
@@ -224,7 +227,7 @@
             margin: 0 auto 20px;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 16px;
         }
         .stat-card {
@@ -270,7 +273,6 @@
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
-            .stats-bar .stat-card:last-child { grid-column: span 2; }
             footer { flex-direction: column; gap: 10px; text-align: center; }
             footer .hours { flex-direction: column; gap: 4px; }
         }
@@ -302,6 +304,10 @@
         <div class="stat-card">
             <div class="stat-value" id="statBusiestDay">-</div>
             <div class="stat-label">Busiest Day</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statAvgParty">-</div>
+            <div class="stat-label">Avg Party Size</div>
         </div>
     </div>
 
@@ -423,6 +429,7 @@
                     } else {
                         document.getElementById('statBusiestDay').textContent = '-';
                     }
+                    document.getElementById('statAvgParty').textContent = data.avg_party_size || '-';
                 });
         }
 
@@ -558,13 +565,13 @@
                 msg.className = 'msg ' + (ok ? 'success' : 'error');
                 msg.textContent = data.message || data.error;
                 msg.style.display = 'block';
+                requestAnimationFrame(() => msg.classList.add('show'));
                 if (ok) {
                     document.getElementById('bookingForm').reset();
                     const resetDate = new Date().toISOString().split('T')[0];
                     document.getElementById('date').value = resetDate;
                     document.getElementById('date').min = resetDate;
                     document.getElementById('guests').value = 2;
-                    // Auto-select the booked date on calendar
                     const bookedDate = payload.date;
                     const d = new Date(bookedDate + 'T12:00:00');
                     calYear = d.getFullYear();
@@ -572,7 +579,10 @@
                     selectedDate = bookedDate;
                     fetchBookings();
                 }
-                setTimeout(() => { msg.style.display = 'none'; }, 4000);
+                setTimeout(() => {
+                    msg.classList.remove('show');
+                    setTimeout(() => { msg.style.display = 'none'; }, 400);
+                }, 4000);
             });
         });
 
